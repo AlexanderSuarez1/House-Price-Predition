@@ -1,6 +1,6 @@
 {
     "version": "v1",
-    "fecha_creacion": "2026-11-08T13:37:55.518231+00:00",
+    "fecha_creacion": "2026-11-08T18:11:56.008929+00:00",
     "tipo_problema": "Regresión supervisada",
     "variable_objetivo": "price",
     "algoritmo": "GradientBoostingRegressor",
@@ -83,6 +83,6 @@
     "entorno": {
         "python_version": "3.14.2",
         "archivo_dependencias": "requirements.txt",
-        "git_commit": "c984632"
+        "git_commit": "074132e"
     }
 }
