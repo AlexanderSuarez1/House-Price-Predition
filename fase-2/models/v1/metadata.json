@@ -1,0 +1,88 @@
+{
+    "version": "v1",
+    "fecha_creacion": "2026-11-08T13:37:55.518231+00:00",
+    "tipo_problema": "Regresión supervisada",
+    "variable_objetivo": "price",
+    "algoritmo": "GradientBoostingRegressor",
+    "parametros_modelo": {
+        "n_estimators": 100,
+        "random_state": 42
+    },
+    "semilla_aleatoria": 42,
+    "variables_entrada": {
+        "orden_esperado": [
+            "bedrooms",
+            "bathrooms",
+            "sqft_living",
+            "sqft_lot",
+            "floors",
+            "waterfront",
+            "view",
+            "condition",
+            "sqft_above",
+            "sqft_basement",
+            "yr_built",
+            "yr_renovated",
+            "city",
+            "statezip",
+            "year_sale",
+            "month_sale"
+        ],
+        "tipos_esperados": {
+            "bedrooms": "numerica (float/int)",
+            "bathrooms": "numerica (float/int)",
+            "sqft_living": "numerica (float/int)",
+            "sqft_lot": "numerica (float/int)",
+            "floors": "numerica (float/int)",
+            "waterfront": "numerica (float/int)",
+            "view": "numerica (float/int)",
+            "condition": "numerica (float/int)",
+            "sqft_above": "numerica (float/int)",
+            "sqft_basement": "numerica (float/int)",
+            "yr_built": "numerica (float/int)",
+            "yr_renovated": "numerica (float/int)",
+            "city": "categorica (str)",
+            "statezip": "categorica (str)",
+            "year_sale": "numerica (float/int)",
+            "month_sale": "numerica (float/int)"
+        },
+        "categoricas": [
+            "city",
+            "statezip"
+        ],
+        "numericas": [
+            "bedrooms",
+            "bathrooms",
+            "sqft_living",
+            "sqft_lot",
+            "floors",
+            "waterfront",
+            "view",
+            "condition",
+            "sqft_above",
+            "sqft_basement",
+            "yr_built",
+            "yr_renovated",
+            "year_sale",
+            "month_sale"
+        ]
+    },
+    "datos_utilizados": {
+        "fuente": "Kaggle - House Price Prediction",
+        "archivo": "data/DataSet_House_Price_Prediction.csv",
+        "observaciones_originales": 4600,
+        "observaciones_validas": 4551
+    },
+    "particion": {
+        "estrategia": "train_test_split aleatorio",
+        "test_size": 0.2,
+        "tamano_entrenamiento": 3640,
+        "tamano_prueba": 911,
+        "metrica_evaluacion": "MAE (complementada con RMSE y R2)"
+    },
+    "entorno": {
+        "python_version": "3.14.2",
+        "archivo_dependencias": "requirements.txt",
+        "git_commit": "c984632"
+    }
+}
