@@ -1,0 +1,41 @@
+{
+    "version": "v3",
+    "metrica_principal": "MAE",
+    "modelo_final": {
+        "nombre": "RandomForestRegressor",
+        "metricas": {
+            "MAE": 122850.98,
+            "RMSE": 484410.56,
+            "R2": -0.9987
+        }
+    },
+    "modelo_base": {
+        "nombre": "DummyRegressor (median)",
+        "metricas": {
+            "MAE": 220246.43,
+            "RMSE": 350888.83,
+            "R2": -0.0487
+        }
+    },
+    "mejora_mae_vs_base": 97395.45,
+    "validacion_interna": {
+        "LinearRegression": {
+            "MAE_promedio": 150783.23,
+            "MAE_std": 11594.92,
+            "RMSE_promedio": 408599.54,
+            "R2_promedio": 0.481
+        },
+        "RandomForestRegressor": {
+            "MAE_promedio": 131487.31,
+            "MAE_std": 19425.65,
+            "RMSE_promedio": 511022.69,
+            "R2_promedio": -0.4461
+        },
+        "GradientBoostingRegressor": {
+            "MAE_promedio": 136316.75,
+            "MAE_std": 14047.52,
+            "RMSE_promedio": 463528.5,
+            "R2_promedio": 0.0803
+        }
+    }
+}

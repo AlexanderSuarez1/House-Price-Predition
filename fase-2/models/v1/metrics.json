@@ -1,0 +1,21 @@
+{
+    "version": "v1",
+    "metrica_principal": "MAE",
+    "modelo_final": {
+        "nombre": "GradientBoostingRegressor",
+        "metricas": {
+            "MAE": 129760.42,
+            "RMSE": 247900.41,
+            "R2": 0.5869
+        }
+    },
+    "modelo_base": {
+        "nombre": "DummyRegressor (median)",
+        "metricas": {
+            "MAE": 232654.39,
+            "RMSE": 396573.67,
+            "R2": -0.0571
+        }
+    },
+    "mejora_mae_vs_base": 102893.97
+}
