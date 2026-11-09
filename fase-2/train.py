@@ -10,9 +10,10 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyRegressor
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GroupKFold, GroupShuffleSplit, cross_validate
 from sklearn.pipeline import Pipeline
 
 from src.preprocesamiento import (
@@ -79,35 +80,77 @@ def entrenar_modelo(
 
     # Leer y limpiar datos
     df_original = pd.read_csv(ruta_datos)
-    X, y = limpiar_datos_entrenamiento(df_original, target_col=target_col, seed=seed)
-
-    # Separar entrenamiento y prueba antes de ajustar transformaciones
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=seed
+    X, y, grupos = limpiar_datos_entrenamiento(
+        df_original, target_col=target_col, seed=seed
     )
 
-    # Entrenar y evaluar modelo base (DummyRegressor con mediana)
+    # Reservar la prueba final por grupos antes de seleccionar modelos.
+    separador = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed)
+    indices_desarrollo, indices_prueba = next(
+        separador.split(X, y, groups=grupos)
+    )
+    X_desarrollo = X.iloc[indices_desarrollo]
+    X_prueba = X.iloc[indices_prueba]
+    y_desarrollo = y.iloc[indices_desarrollo]
+    y_prueba = y.iloc[indices_prueba]
+    grupos_desarrollo = grupos.iloc[indices_desarrollo]
+    grupos_prueba = grupos.iloc[indices_prueba]
+    grupos_compartidos = set(grupos_desarrollo).intersection(set(grupos_prueba))
+    if grupos_compartidos:
+        raise RuntimeError("La prueba final contiene grupos presentes en desarrollo.")
+
+    candidatos = {
+        "LinearRegression": LinearRegression(),
+        "RandomForestRegressor": RandomForestRegressor(
+            n_estimators=n_estimators, random_state=seed, n_jobs=-1
+        ),
+        "GradientBoostingRegressor": GradientBoostingRegressor(
+            n_estimators=n_estimators, random_state=seed
+        ),
+    }
+    cv = GroupKFold(n_splits=5)
+    resultados_cv = {}
+    pipelines = {}
+    for nombre, estimador in candidatos.items():
+        pipeline = Pipeline(
+            steps=[
+                ("preprocesamiento", construir_preprocesador()),
+                ("modelo", estimador),
+            ]
+        )
+        scores = cross_validate(
+            pipeline,
+            X_desarrollo,
+            y_desarrollo,
+            groups=grupos_desarrollo,
+            cv=cv,
+            scoring={
+                "MAE": "neg_mean_absolute_error",
+                "RMSE": "neg_root_mean_squared_error",
+                "R2": "r2",
+            },
+            n_jobs=-1,
+        )
+        resultados_cv[nombre] = {
+            "MAE_promedio": round(float(-scores["test_MAE"].mean()), 2),
+            "MAE_std": round(float(scores["test_MAE"].std()), 2),
+            "RMSE_promedio": round(float(-scores["test_RMSE"].mean()), 2),
+            "R2_promedio": round(float(scores["test_R2"].mean()), 4),
+        }
+        pipelines[nombre] = pipeline
+
+    nombre_seleccionado = min(
+        resultados_cv, key=lambda nombre: resultados_cv[nombre]["MAE_promedio"]
+    )
+    pipeline_final = pipelines[nombre_seleccionado]
+    pipeline_final.fit(X_desarrollo, y_desarrollo)
+    pred_final = pipeline_final.predict(X_prueba)
+    metricas_final = calcular_metricas(y_prueba, pred_final)
+
     modelo_base = DummyRegressor(strategy="median")
-    modelo_base.fit(X_train, y_train)
-    pred_base = modelo_base.predict(X_test)
-    metricas_base = calcular_metricas(y_test, pred_base)
-
-    # Construir y entrenar pipeline completo con GradientBoostingRegressor
-    preprocesador = construir_preprocesador()
-    pipeline_final = Pipeline(
-        steps=[
-            ("preprocesamiento", preprocesador),
-            (
-                "modelo",
-                GradientBoostingRegressor(
-                    n_estimators=n_estimators, random_state=seed
-                ),
-            ),
-        ]
-    )
-    pipeline_final.fit(X_train, y_train)
-    pred_final = pipeline_final.predict(X_test)
-    metricas_final = calcular_metricas(y_test, pred_final)
+    modelo_base.fit(X_desarrollo, y_desarrollo)
+    pred_base = modelo_base.predict(X_prueba)
+    metricas_base = calcular_metricas(y_prueba, pred_base)
 
     # Guardar artefactos en la carpeta de la versión
     carpeta_version.mkdir(parents=True, exist_ok=True)
@@ -121,7 +164,7 @@ def entrenar_modelo(
         "version": version,
         "metrica_principal": "MAE",
         "modelo_final": {
-            "nombre": "GradientBoostingRegressor",
+            "nombre": nombre_seleccionado,
             "metricas": metricas_final,
         },
         "modelo_base": {
@@ -129,6 +172,7 @@ def entrenar_modelo(
             "metricas": metricas_base,
         },
         "mejora_mae_vs_base": round(metricas_base["MAE"] - metricas_final["MAE"], 2),
+        "validacion_interna": resultados_cv,
     }
 
     with open(ruta_metricas, "w", encoding="utf-8") as f:
@@ -144,7 +188,7 @@ def entrenar_modelo(
         "fecha_creacion": datetime.now(timezone.utc).isoformat(),
         "tipo_problema": "Regresión supervisada",
         "variable_objetivo": target_col,
-        "algoritmo": "GradientBoostingRegressor",
+        "algoritmo": nombre_seleccionado,
         "parametros_modelo": {
             "n_estimators": n_estimators,
             "random_state": seed,
@@ -163,10 +207,12 @@ def entrenar_modelo(
             "observaciones_validas": int(len(X)),
         },
         "particion": {
-            "estrategia": "train_test_split aleatorio",
+            "estrategia": "GroupShuffleSplit por street-city",
             "test_size": test_size,
-            "tamano_entrenamiento": int(len(X_train)),
-            "tamano_prueba": int(len(X_test)),
+            "tamano_desarrollo": int(len(X_desarrollo)),
+            "tamano_prueba_final": int(len(X_prueba)),
+            "grupos_compartidos": len(grupos_compartidos),
+            "validacion_interna": "GroupKFold(n_splits=5) sobre desarrollo",
             "metrica_evaluacion": "MAE (complementada con RMSE y R2)",
         },
         "entorno": {
@@ -252,7 +298,7 @@ def main():
         metricas_base = resultado["metricas"]["modelo_base"]["metricas"]
 
         print(f"=== Entrenamiento completado exitosamente (Versión: {args.version}) ===")
-        print(f"Modelo final (Gradient Boosting) -> MAE: {metricas_mod['MAE']} | RMSE: {metricas_mod['RMSE']} | R2: {metricas_mod['R2']}")
+        print(f"Modelo final ({resultado['metricas']['modelo_final']['nombre']}) -> MAE: {metricas_mod['MAE']} | RMSE: {metricas_mod['RMSE']} | R2: {metricas_mod['R2']}")
         print(f"Modelo base (Dummy Mediana)      -> MAE: {metricas_base['MAE']} | RMSE: {metricas_base['RMSE']} | R2: {metricas_base['R2']}")
         print(f"Archivos generados:")
         print(f"  - Modelo:    {resultado['ruta_modelo']}")
