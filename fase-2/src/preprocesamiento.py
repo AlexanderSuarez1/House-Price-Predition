@@ -56,7 +56,7 @@ def preparar_variables_entrada(df: pd.DataFrame) -> pd.DataFrame:
 
 def limpiar_datos_entrenamiento(
     df: pd.DataFrame, target_col: str, seed: int = 42
-) -> tuple[pd.DataFrame, pd.Series]:
+) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
     Reproduce la limpieza de la Fase 1: verifica la columna objetivo,
     introduce el 1% de nulos en sqft_living, filtra precios <= 0 y separa X e y.
@@ -66,15 +66,18 @@ def limpiar_datos_entrenamiento(
 
     datos = df.copy()
 
+    grupos = (
+        datos["street"].fillna("<sin_direccion>").astype(str).str.strip()
+        + "|"
+        + datos["city"].fillna("<sin_ciudad>").astype(str).str.strip()
+    )
+
     # Introducir 1% de nulos reproducibles en sqft_living como en la Fase 1
     if "sqft_living" in datos.columns and datos["sqft_living"].isna().sum() == 0:
-        rng = np.random.default_rng(seed)
         cantidad_nulos = int(len(datos) * 0.01)
         if cantidad_nulos > 0:
-            filas_nulas = rng.choice(datos.index, size=cantidad_nulos, replace=False)
-            # Usar numpy random state igual al notebook para consistencia
-            np.random.seed(seed)
-            filas_nulas = np.random.choice(datos.index, cantidad_nulos, replace=False)
+            rng = np.random.RandomState(seed)
+            filas_nulas = rng.choice(datos.index, cantidad_nulos, replace=False)
             datos.loc[filas_nulas, "sqft_living"] = np.nan
 
     # Filtrar viviendas con precio igual o menor a cero
@@ -85,7 +88,8 @@ def limpiar_datos_entrenamiento(
     y = pd.to_numeric(datos[target_col], errors="raise")
     X = preparar_variables_entrada(datos.drop(columns=[target_col]))
 
-    return X, y
+    grupos = grupos.loc[datos.index]
+    return X, y, grupos
 
 
 def construir_preprocesador() -> ColumnTransformer:
