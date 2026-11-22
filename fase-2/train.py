@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
@@ -27,6 +29,9 @@ from src.preprocesamiento import (
 
 def obtener_commit_git() -> str:
     """Obtiene el hash corto del commit actual de Git."""
+    commit_env = os.environ.get("GIT_COMMIT", "").strip()
+    if commit_env:
+        return commit_env
     try:
         resultado = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -217,6 +222,7 @@ def entrenar_modelo(
         },
         "entorno": {
             "python_version": platform.python_version(),
+            "scikit_learn_version": sklearn.__version__,
             "archivo_dependencias": "requirements.txt",
             "git_commit": obtener_commit_git(),
         },
@@ -230,6 +236,7 @@ def entrenar_modelo(
         "ruta_metricas": str(ruta_metricas),
         "ruta_metadata": str(ruta_metadata),
         "metricas": contenido_metricas,
+        "pipeline": pipeline_final,
     }
 
 
