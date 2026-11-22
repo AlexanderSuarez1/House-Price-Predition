@@ -1,6 +1,6 @@
 {
     "version": "v3",
-    "fecha_creacion": "2026-11-09T03:27:05.672582+00:00",
+    "fecha_creacion": "2026-11-22T13:54:37.976423+00:00",
     "tipo_problema": "Regresión supervisada",
     "variable_objetivo": "price",
     "algoritmo": "RandomForestRegressor",
@@ -69,7 +69,7 @@
     },
     "datos_utilizados": {
         "fuente": "Kaggle - House Price Prediction",
-        "archivo": "fase-2\\data\\DataSet_House_Price_Prediction.csv",
+        "archivo": "data/DataSet_House_Price_Prediction.csv",
         "observaciones_originales": 4600,
         "observaciones_validas": 4551
     },
@@ -83,8 +83,9 @@
         "metrica_evaluacion": "MAE (complementada con RMSE y R2)"
     },
     "entorno": {
-        "python_version": "3.14.3",
+        "python_version": "3.14.2",
+        "scikit_learn_version": "1.9.1",
         "archivo_dependencias": "requirements.txt",
-        "git_commit": "15b4a8c"
+        "git_commit": "e11225d"
     }
 }
