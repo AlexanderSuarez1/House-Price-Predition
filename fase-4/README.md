@@ -55,13 +55,11 @@ y solo se activará si mejora la métrica.
 
 ## Reporte
 
-El registro inicial contenía dos solicitudes válidas y una rechazada por
-validación. Después se añadieron 15 solicitudes aleatorias mediante
-`TestClient`, de las cuales 11 fueron aceptadas con `200` y 4 fueron rechazadas
-con `422`. El total fue de **18 solicitudes** y el porcentaje de fallos fue
-**27.8 %**. El resultado permanece por debajo del 40 % solicitado y demuestra
-la conservación del registro entre pruebas; la métrica no mide la calidad de
-las predicciones.
+Se realizaron 18 solicitudes en total. Trece predicciones fueron procesadas
+correctamente por la API con la versión `v3` y cinco fueron rechazadas con
+`422` porque les faltaba el campo obligatorio `city`. La tasa de fallos fue
+**27.8 %**. Estos indicadores describen el funcionamiento del servicio en el
+registro revisado y no representan la calidad predictiva del modelo.
 
 ## Ejecución
 
