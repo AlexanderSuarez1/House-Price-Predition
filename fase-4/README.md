@@ -34,8 +34,8 @@ python metricas.py activity_log.jsonl
 Con la muestra incluida se obtienen:
 
 ```text
-Solicitudes totales: 3
-Porcentaje de solicitudes fallidas: 33.3 %
+Solicitudes totales: 18
+Porcentaje de solicitudes fallidas: 27.8 %
 ```
 
 Se consideran fallidas las respuestas HTTP 4xx y 5xx. Si no existen eventos,
@@ -55,10 +55,13 @@ y solo se activará si mejora la métrica.
 
 ## Reporte
 
-La muestra contiene dos solicitudes válidas y una rechazada por validación.
-El total fue de **3 solicitudes** y el porcentaje de fallos fue **33.3 %**.
-Esto indica que una de cada tres solicitudes registradas fue rechazada por el
-servicio; la métrica no mide la calidad de las predicciones.
+El registro inicial contenía dos solicitudes válidas y una rechazada por
+validación. Después se añadieron 15 solicitudes aleatorias mediante
+`TestClient`, de las cuales 11 fueron aceptadas con `200` y 4 fueron rechazadas
+con `422`. El total fue de **18 solicitudes** y el porcentaje de fallos fue
+**27.8 %**. El resultado permanece por debajo del 40 % solicitado y demuestra
+la conservación del registro entre pruebas; la métrica no mide la calidad de
+las predicciones.
 
 ## Ejecución
 
