@@ -55,11 +55,10 @@ y solo se activará si mejora la métrica.
 
 ## Reporte
 
-Se realizaron 18 solicitudes en total. Trece predicciones fueron procesadas
-correctamente por la API con la versión `v3` y cinco fueron rechazadas con
-`422` porque les faltaba el campo obligatorio `city`. La tasa de fallos fue
-**27.8 %**. Estos indicadores describen el funcionamiento del servicio en el
-registro revisado y no representan la calidad predictiva del modelo.
+La API procesó 13 solicitudes con éxito y rechazó las otras cinco porque les
+faltaba el campo obligatorio `city`. La tasa de fallos fue 5/18 (**27.8 %**).
+Los datos registrados muestran el comportamiento operativo de la API, pero no
+permiten evaluar la precisión del modelo.
 
 ## Ejecución
 
